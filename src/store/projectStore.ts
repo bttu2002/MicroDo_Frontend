@@ -15,6 +15,7 @@ interface ProjectState {
   // ── Actions: list ────────────────────────────────────────────
   fetchProjects: () => Promise<void>;
   silentFetch: () => Promise<void>;
+  hydrateProjects: (list: Project[]) => void;
 
   // ── Actions: single project ───────────────────────────────────
   fetchProject: (id: string) => Promise<void>;
@@ -75,6 +76,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       // silent — don't disrupt UI
     }
   },
+
+  hydrateProjects: (list: Project[]) => set({ projects: list, hasFetched: true }),
 
   // ── Single project ────────────────────────────────────────────
 
