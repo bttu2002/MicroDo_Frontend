@@ -23,6 +23,7 @@ export default defineConfig({
         manualChunks(id: string) {
           if (!id.includes('node_modules')) return undefined
           if (id.includes('@supabase'))      return 'vendor-supabase'
+          if (id.includes('@tanstack/react-query')) return 'vendor-query'
           if (id.includes('@tiptap'))        return 'vendor-tiptap'
           if (id.includes('@dnd-kit'))       return 'vendor-dnd'
           if (id.includes('@fullcalendar'))  return 'vendor-fullcalendar'
