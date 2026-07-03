@@ -23,6 +23,7 @@ interface TimeTrackingState {
   fetchActiveSession: () => Promise<void>;
   startTracking: (taskId: string) => Promise<void>;
   stopTracking: () => Promise<void>;
+  hydrateActiveSession: (session: TimeTrackingSession | null) => void;
 }
 
 export const useTimeTrackingStore = create<TimeTrackingState>((set) => ({
@@ -73,5 +74,18 @@ export const useTimeTrackingStore = create<TimeTrackingState>((set) => ({
     } finally {
       set({ loading: false });
     }
+  },
+
+  // Same tick + elapsed setup as fetchActiveSession but takes preloaded data
+  // from /me/bootstrap instead of a dedicated request.
+  hydrateActiveSession: (session: TimeTrackingSession | null) => {
+    if (!session) {
+      stopTick();
+      set({ activeSession: null, elapsedSeconds: 0 });
+      return;
+    }
+    const elapsed = Math.floor((Date.now() - new Date(session.startedAt).getTime()) / 1000);
+    set({ activeSession: session, elapsedSeconds: Math.max(0, elapsed) });
+    startTick(set);
   },
 }));
