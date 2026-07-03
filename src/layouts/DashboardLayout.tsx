@@ -10,40 +10,42 @@ import { useSocketStore } from '@/store/socketStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { useProjectStore } from '@/store/projectStore';
 import { useTaskStore } from '@/store/taskStore';
+import { meService } from '@/services/meService';
 import { toast } from 'sonner';
 import type { Notification } from '@/types';
 
 export default function DashboardLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const fetchProfile = useAuthStore((s) => s.fetchProfile);
   const token = useAuthStore((s) => s.token);
-  const fetchActiveSession = useTimeTrackingStore((s) => s.fetchActiveSession);
-  const user = useAuthStore((s) => s.user);
-  const fetchMyDepartments = useDepartmentStore((s) => s.fetchMyDepartments);
   const { connect, disconnect, updateToken, socket } = useSocketStore();
   const pushNotification = useNotificationStore((s) => s.pushNotification);
-  const fetchUnreadCount = useNotificationStore((s) => s.fetchUnreadCount);
-  const fetchProjects = useProjectStore((s) => s.fetchProjects);
-  const hasFetchedProjects = useProjectStore((s) => s.hasFetched);
   const silentFetch = useTaskStore((s) => s.silentFetch);
 
+  // Single aggregated request replaces the 5 dashboard cold-start fetches
+  // (profile + activeSession + memberships + unreadCount + projects). Each
+  // store exposes a `hydrate*` action so this handler doesn't grow every time
+  // a store adds bootstrap-relevant state.
   useEffect(() => {
-    fetchProfile();
-    fetchActiveSession();
-  }, [fetchProfile, fetchActiveSession]);
-
-  useEffect(() => {
-    if (user && user.role !== 'ADMIN') {
-      fetchMyDepartments();
-      if (!hasFetchedProjects) fetchProjects();
-    }
-  }, [user?.role, fetchMyDepartments, fetchProjects, hasFetchedProjects]);
-
-  // Load initial unread notification count from DB on mount
-  useEffect(() => {
-    fetchUnreadCount();
-  }, [fetchUnreadCount]);
+    if (!token) return;
+    let cancelled = false;
+    meService.getBootstrap()
+      .then(res => {
+        if (cancelled || !res.success) return;
+        const d = res.data;
+        useAuthStore.getState().hydrateProfile(d.profile);
+        useTimeTrackingStore.getState().hydrateActiveSession(d.activeSession);
+        useDepartmentStore.getState().hydrateMemberships(d.memberships);
+        useNotificationStore.getState().hydrateUnreadCount(d.unreadCount);
+        useProjectStore.getState().hydrateProjects(d.projects);
+      })
+      .catch(() => {
+        // 401 → response interceptor already redirects to login. Other network
+        // failures are silent; the stored user/token from localStorage keeps the
+        // dashboard rendering with the last known state until the next refresh.
+      });
+    return () => { cancelled = true; };
+  }, [token]);
 
   // Connect socket when authenticated; updateToken keeps auth fresh after token rotation
   useEffect(() => {
