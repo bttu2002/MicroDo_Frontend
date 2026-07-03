@@ -18,7 +18,6 @@ export function useTaskPresence(taskId: string | null | undefined, open: boolean
     ?? (user as { _id?: string } | null)?._id;
 
   useEffect(() => {
-    console.log('[presence] effect', { hasSocket: !!socket, taskId, open });
     if (!socket || !taskId || !open) return;
 
     const name = (user as { name?: string } | null)?.name ?? user?.email ?? '';
@@ -39,7 +38,6 @@ export function useTaskPresence(taskId: string | null | undefined, open: boolean
     socket.on('connect', joinTask);
 
     // Initial join — Socket.IO buffers this if not yet connected
-    console.log('[presence] emitting task:join', { taskId, name, avatar });
     joinTask();
 
     return () => {
