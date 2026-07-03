@@ -8,6 +8,7 @@ interface NotificationState {
   loading: boolean;
   fetchNotifications: () => Promise<void>;
   fetchUnreadCount: () => Promise<void>;
+  hydrateUnreadCount: (count: number) => void;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   pushNotification: (notification: Notification) => void;
@@ -42,6 +43,8 @@ export const useNotificationStore = create<NotificationState>((set) => ({
       // silent fail
     }
   },
+
+  hydrateUnreadCount: (count: number) => set({ unreadCount: count }),
 
   markAsRead: async (id: string) => {
     try {
