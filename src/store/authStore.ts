@@ -11,6 +11,7 @@ interface AuthState {
   logout: () => void;
   fetchProfile: () => Promise<void>;
   updateUser: (user: User) => void;
+  hydrateProfile: (user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -44,6 +45,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   updateUser: (user: User) => {
+    localStorage.setItem('microdo_user', JSON.stringify(user));
+    set({ user });
+  },
+
+  // Hydrate from an aggregated payload (e.g. /me/bootstrap). Same effect as
+  // fetchProfile but without spending a dedicated request.
+  hydrateProfile: (user: User) => {
     localStorage.setItem('microdo_user', JSON.stringify(user));
     set({ user });
   },
