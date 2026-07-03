@@ -42,10 +42,10 @@ export const useDepartmentStore = create<DepartmentStore>((set, get) => ({
           const dept = m.department as typeof m.department & { _id?: string };
           return { ...m, department: { ...dept, id: dept.id ?? dept._id ?? '' } };
         };
-        const managed = res.data
+        const active = res.data
           .filter((m) => m.status === 'ACTIVE')
           .map(normalize);
-        set({ myDepartments: managed, hasFetched: true });
+        set({ myDepartments: active, allMemberships: active, hasFetched: true });
       }
     } catch {
       set({ hasFetched: true });
@@ -54,21 +54,9 @@ export const useDepartmentStore = create<DepartmentStore>((set, get) => ({
     }
   },
 
+  // Backward-compat alias — same endpoint as fetchMyDepartments, sets same state
   fetchAllMemberships: async () => {
-    try {
-      const res = await departmentService.getUserMemberships();
-      if (res.success) {
-        const active = res.data
-          .filter((m) => m.status === 'ACTIVE')
-          .map((m) => {
-            const dept = m.department as typeof m.department & { _id?: string };
-            return { ...m, department: { ...dept, id: dept.id ?? dept._id ?? '' } };
-          });
-        set({ allMemberships: active });
-      }
-    } catch {
-      // silent
-    }
+    await get().fetchMyDepartments();
   },
 
   updateRecentDept: (deptId: string) => {
