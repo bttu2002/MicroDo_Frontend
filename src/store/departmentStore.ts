@@ -21,6 +21,8 @@ interface DepartmentStore {
   recentDeptIds: string[];
   updateRecentDept: (deptId: string) => void;
 
+  hydrateMemberships: (data: MyDepartmentMembership[]) => void;
+
   reset: () => void;
 }
 
@@ -57,6 +59,17 @@ export const useDepartmentStore = create<DepartmentStore>((set, get) => ({
   // Backward-compat alias — same endpoint as fetchMyDepartments, sets same state
   fetchAllMemberships: async () => {
     await get().fetchMyDepartments();
+  },
+
+  // Preloaded from /me/bootstrap — same normalization as fetchMyDepartments
+  hydrateMemberships: (data: MyDepartmentMembership[]) => {
+    const normalized = data
+      .filter((m) => m.status === 'ACTIVE')
+      .map((m) => {
+        const dept = m.department as typeof m.department & { _id?: string };
+        return { ...m, department: { ...dept, id: dept.id ?? dept._id ?? '' } };
+      });
+    set({ myDepartments: normalized, allMemberships: normalized, hasFetched: true });
   },
 
   updateRecentDept: (deptId: string) => {
