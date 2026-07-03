@@ -273,6 +273,10 @@ const KanbanBoard = forwardRef<KanbanBoardRef, KanbanBoardProps>(({
     return cp && cp.id === lockedProjectId ? cp.members ?? null : null;
   });
 
+  // Reset filters + fetch members ONLY when the project actually changes. This
+  // is separated from the member-sync effect below so a late-arriving
+  // `currentProject.members` (e.g. after a direct-URL navigation) doesn't wipe
+  // filter/search state the user is currently editing.
   useEffect(() => {
     if (!lockedProjectId) {
       setProjectMembers([]);
@@ -280,20 +284,28 @@ const KanbanBoard = forwardRef<KanbanBoardRef, KanbanBoardProps>(({
       setFilterAssignee(null);
       return;
     }
-    if (cachedProjectMembers) {
-      setProjectMembers(cachedProjectMembers);
-    } else {
-      projectService.getMembers(lockedProjectId)
-        .then(res => setProjectMembers(res.data))
-        .catch(() => {});
-    }
     setFilterSearch('');
     setFilterAssignee(null);
     setDateSort('');
     setPrioritySort('');
     setDeadlineFrom(null);
     setDeadlineTo(null);
-  }, [lockedProjectId, cachedProjectMembers]);
+
+    // Only hit the API if the store doesn't already have members cached — the
+    // sync effect below will fill state as soon as they arrive.
+    if (!cachedProjectMembers) {
+      projectService.getMembers(lockedProjectId)
+        .then(res => setProjectMembers(res.data))
+        .catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lockedProjectId]);
+
+  // Adopt cached members whenever they change (initial hydrate or optimistic
+  // add/remove elsewhere). Never touches filter/sort state.
+  useEffect(() => {
+    if (cachedProjectMembers) setProjectMembers(cachedProjectMembers);
+  }, [cachedProjectMembers]);
 
   // ── Fetch columns + immediately trigger col task fetch ───────
   // C-1: call fetchProjectColTasks inside .then() with fresh data to avoid stale closure
