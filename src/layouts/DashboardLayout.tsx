@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
@@ -21,7 +21,6 @@ export default function DashboardLayout() {
   const fetchActiveSession = useTimeTrackingStore((s) => s.fetchActiveSession);
   const user = useAuthStore((s) => s.user);
   const fetchMyDepartments = useDepartmentStore((s) => s.fetchMyDepartments);
-  const fetchAllMemberships = useDepartmentStore((s) => s.fetchAllMemberships);
   const { connect, disconnect, updateToken, socket } = useSocketStore();
   const pushNotification = useNotificationStore((s) => s.pushNotification);
   const fetchUnreadCount = useNotificationStore((s) => s.fetchUnreadCount);
@@ -37,10 +36,9 @@ export default function DashboardLayout() {
   useEffect(() => {
     if (user && user.role !== 'ADMIN') {
       fetchMyDepartments();
-      fetchAllMemberships();
       if (!hasFetchedProjects) fetchProjects();
     }
-  }, [user?.role, fetchMyDepartments, fetchAllMemberships, fetchProjects, hasFetchedProjects]);
+  }, [user?.role, fetchMyDepartments, fetchProjects, hasFetchedProjects]);
 
   // Load initial unread notification count from DB on mount
   useEffect(() => {
@@ -56,6 +54,7 @@ export default function DashboardLayout() {
   }, [token, connect, disconnect, updateToken]);
 
   // Global socket event listeners
+  const taskUpdatedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!socket) return;
 
@@ -64,8 +63,11 @@ export default function DashboardLayout() {
       toast(data.title, { description: data.message, duration: 4000 });
     };
 
+    // Debounce silentFetch — 1 CRUD often emits multiple events (task:updated,
+    // task:statusUpdated, planning:updated). Coalesce them into a single refetch.
     const handleTaskUpdated = () => {
-      silentFetch();
+      if (taskUpdatedTimerRef.current) clearTimeout(taskUpdatedTimerRef.current);
+      taskUpdatedTimerRef.current = setTimeout(() => { void silentFetch(); }, 300);
     };
 
     socket.on('notification:new', handleNotification);
@@ -74,6 +76,7 @@ export default function DashboardLayout() {
     return () => {
       socket.off('notification:new', handleNotification);
       socket.off('task:updated', handleTaskUpdated);
+      if (taskUpdatedTimerRef.current) clearTimeout(taskUpdatedTimerRef.current);
     };
   }, [socket, pushNotification, silentFetch]);
 
