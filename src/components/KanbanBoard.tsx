@@ -20,6 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useTaskStore } from '@/store/taskStore';
 import { useSocketStore } from '@/store/socketStore';
 import { useAuthStore } from '@/store/authStore';
+import { useProjectStore } from '@/store/projectStore';
 import { boardColumnService } from '@/services/boardColumnService';
 import { projectService } from '@/services/projectService';
 import TaskCard from '@/components/TaskCard';
@@ -264,7 +265,12 @@ const KanbanBoard = forwardRef<KanbanBoardRef, KanbanBoardProps>(({
     return () => { socket.off('task:statusUpdated', handler); };
   }, [socket, silentFetch, silentRefreshPersonal, lockedProjectId]);
 
-  // ── Fetch project members ────────────────────────────────────
+  // ── Reuse currentProject.members when available (avoids a redundant GET) ──
+  const cachedProjectMembers = useProjectStore((s) => {
+    const cp = s.currentProject;
+    return cp && cp.id === lockedProjectId ? cp.members ?? null : null;
+  });
+
   useEffect(() => {
     if (!lockedProjectId) {
       setProjectMembers([]);
@@ -272,16 +278,20 @@ const KanbanBoard = forwardRef<KanbanBoardRef, KanbanBoardProps>(({
       setFilterAssignee(null);
       return;
     }
-    projectService.getMembers(lockedProjectId)
-      .then(res => setProjectMembers(res.data))
-      .catch(() => {});
+    if (cachedProjectMembers) {
+      setProjectMembers(cachedProjectMembers);
+    } else {
+      projectService.getMembers(lockedProjectId)
+        .then(res => setProjectMembers(res.data))
+        .catch(() => {});
+    }
     setFilterSearch('');
     setFilterAssignee(null);
     setDateSort('');
     setPrioritySort('');
     setDeadlineFrom(null);
     setDeadlineTo(null);
-  }, [lockedProjectId]);
+  }, [lockedProjectId, cachedProjectMembers]);
 
   // ── Fetch columns + immediately trigger col task fetch ───────
   // C-1: call fetchProjectColTasks inside .then() with fresh data to avoid stale closure
