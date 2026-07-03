@@ -56,6 +56,10 @@ interface TaskState {
   fetchProjectColTasks: (columnIds: string[], options?: { silent?: boolean }) => Promise<void>;
   loadMoreProjectCol: (columnId: string) => Promise<void>;
   silentRefreshProjectCols: () => Promise<void>;
+  hydrateProjectBoard: (
+    columnIds: string[],
+    tasksByColumn: Record<string, { data: Task[]; pagination: Pagination | null }>,
+  ) => void;
 }
 
 // M-3: in-flight guard — prevents duplicate pages on double-click "Load more"
@@ -443,5 +447,23 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         void get().silentRefreshProjectCols();
       }
     }
+  },
+
+  // Fed by the aggregated /projects/:id/board endpoint — skips the N per-column
+  // network requests fetchProjectColTasks would otherwise fire on mount.
+  hydrateProjectBoard: (columnIds, tasksByColumn) => {
+    const newColTasks: Record<string, Task[]> = {};
+    const newColPaginations: Record<string, Pagination | null> = {};
+    for (const id of columnIds) {
+      const bucket = tasksByColumn[id];
+      newColTasks[id] = bucket?.data ?? [];
+      newColPaginations[id] = bucket?.pagination ?? null;
+    }
+    set({
+      projectColIds:         columnIds,
+      projectColTasks:       newColTasks,
+      projectColPaginations: newColPaginations,
+      projectColLoading:     false,
+    });
   },
 }));

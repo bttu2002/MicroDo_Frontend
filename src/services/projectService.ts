@@ -6,7 +6,12 @@ import type {
   ProjectResponse,
   ProjectMembersResponse,
   ProjectDepartmentLink,
+  BoardColumn,
+  Task,
+  TasksResponse,
 } from '@/types';
+
+type Pagination = TasksResponse['pagination'];
 
 export interface CreateProjectData {
   name: string;
@@ -28,6 +33,21 @@ export const projectService = {
 
   getProjectById: async (id: string): Promise<ProjectResponse> => {
     const response = await api.get<ProjectResponse>(`/projects/${id}`);
+    return response.data;
+  },
+
+  // Aggregate for KanbanBoard cold-start (columns + tasks-per-column in one RTT)
+  getBoard: async (
+    id: string,
+    limit = 20,
+  ): Promise<{
+    success: boolean;
+    data: {
+      columns: BoardColumn[];
+      tasksByColumn: Record<string, { data: Task[]; pagination: Pagination }>;
+    };
+  }> => {
+    const response = await api.get(`/projects/${id}/board`, { params: { limit } });
     return response.data;
   },
 

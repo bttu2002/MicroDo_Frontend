@@ -198,7 +198,7 @@ const KanbanBoard = forwardRef<KanbanBoardRef, KanbanBoardProps>(({
     createTask, updateTask, deleteTask, moveTask, moveTaskToColumn, cancelRecurrence,
     silentFetch, silentRefreshPersonal, patchTask,
     setParams, projectColTasks, projectColPaginations, projectColLoading,
-    fetchProjectColTasks, loadMoreProjectCol,
+    loadMoreProjectCol,
   } = useTaskStore();
   const { socket } = useSocketStore();
   const currentUser = useAuthStore((s) => s.user);
@@ -307,21 +307,25 @@ const KanbanBoard = forwardRef<KanbanBoardRef, KanbanBoardProps>(({
     if (cachedProjectMembers) setProjectMembers(cachedProjectMembers);
   }, [cachedProjectMembers]);
 
-  // ── Fetch columns + immediately trigger col task fetch ───────
-  // C-1: call fetchProjectColTasks inside .then() with fresh data to avoid stale closure
-  // B-1: cancelled flag prevents stale response from overwriting state after unmount/project switch
+  // ── Aggregated cold-start: columns + tasks-per-column in one request ─
+  // Replaces the previous 2-tier waterfall (getColumns → N × getTasks) with a
+  // single /projects/:id/board call. B-1: `cancelled` guards against a stale
+  // response overwriting state after unmount/project switch.
   useEffect(() => {
     if (!lockedProjectId) return;
     let cancelled = false;
     setColumnsLoading(true);
-    boardColumnService.getColumns(lockedProjectId)
+    projectService.getBoard(lockedProjectId, 20)
       .then(res => {
         if (cancelled) return;
-        const cols = [...res.data].sort((a, b) => a.order - b.order);
+        const cols = [...res.data.columns].sort((a, b) => a.order - b.order);
         setBoardColumns(cols);
-        void fetchProjectColTasks(cols.map(c => c.id));
+        useTaskStore.getState().hydrateProjectBoard(
+          cols.map(c => c.id),
+          res.data.tasksByColumn,
+        );
       })
-      .catch((err) => { if (!cancelled) toast.error(getApiErrorMessage(err, 'Failed to load columns')); })
+      .catch((err) => { if (!cancelled) toast.error(getApiErrorMessage(err, 'Failed to load board')); })
       .finally(() => { if (!cancelled) setColumnsLoading(false); });
     return () => { cancelled = true; };
   }, [lockedProjectId]); // eslint-disable-line react-hooks/exhaustive-deps
