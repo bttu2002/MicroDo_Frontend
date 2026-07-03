@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useState, useRef, forwardRef, useImperativeHandle, lazy, Suspense } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -24,8 +24,10 @@ import { useProjectStore } from '@/store/projectStore';
 import { boardColumnService } from '@/services/boardColumnService';
 import { projectService } from '@/services/projectService';
 import TaskCard from '@/components/TaskCard';
-import TaskDialog from '@/components/TaskDialog';
-import CommentDialog from '@/components/CommentDialog';
+// Lazy — TaskDialog + CommentDialog pull in TipTap (~100kB gz) and are only
+// used when the user opens a dialog. Deferring keeps the board's first paint fast.
+const TaskDialog    = lazy(() => import('@/components/TaskDialog'));
+const CommentDialog = lazy(() => import('@/components/CommentDialog'));
 import type { Task, BoardColumn, ProjectMember } from '@/types';
 import { Plus, Loader2, MoreHorizontal, Palette, Trash2, GripVertical, Search, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
@@ -1081,33 +1083,40 @@ const KanbanBoard = forwardRef<KanbanBoardRef, KanbanBoardProps>(({
         </DragOverlay>
       </DndContext>
 
-      {/* Create/Edit Dialog */}
-      <TaskDialog
-        open={dialogOpen}
-        onClose={() => { setDialogOpen(false); setEditingTask(null); setOpenNotesOnNext(false); setTaskError(''); }}
-        onSubmit={handleSubmit}
-        task={editingTask}
-        loading={dialogLoading}
-        lockedProjectId={lockedProjectId}
-        lockedProjectName={lockedProjectName}
-        initialTab={openNotesOnNext ? 'notes' : undefined}
-        isReadOnly={!canEditTasks}
-        projectMembers={lockedProjectId ? projectMembers : undefined}
-        canAssign={canAssign}
-        externalError={taskError}
-        onSubtasksChanged={(taskId, progress) => patchTask(taskId, { subtaskProgress: progress })}
-      />
+      {/* Create/Edit Dialog — mounted only when opened so the lazy chunk
+          isn't fetched on the initial board render */}
+      {dialogOpen && (
+        <Suspense fallback={null}>
+          <TaskDialog
+            open={dialogOpen}
+            onClose={() => { setDialogOpen(false); setEditingTask(null); setOpenNotesOnNext(false); setTaskError(''); }}
+            onSubmit={handleSubmit}
+            task={editingTask}
+            loading={dialogLoading}
+            lockedProjectId={lockedProjectId}
+            lockedProjectName={lockedProjectName}
+            initialTab={openNotesOnNext ? 'notes' : undefined}
+            isReadOnly={!canEditTasks}
+            projectMembers={lockedProjectId ? projectMembers : undefined}
+            canAssign={canAssign}
+            externalError={taskError}
+            onSubtasksChanged={(taskId, progress) => patchTask(taskId, { subtaskProgress: progress })}
+          />
+        </Suspense>
+      )}
 
       {/* Comment Dialog */}
       {commentTask && (
-        <CommentDialog open={!!commentTask}
-          onClose={() => { setCommentTask(null); setHighlightCommentId(undefined); }}
-          task={commentTask}
-          onCountUpdate={(taskId, count) =>
-            setCommentCounts((prev) => ({ ...prev, [taskId]: count }))
-          }
-          highlightCommentId={highlightCommentId}
-          projectMembers={lockedProjectId ? projectMembers : undefined} />
+        <Suspense fallback={null}>
+          <CommentDialog open={!!commentTask}
+            onClose={() => { setCommentTask(null); setHighlightCommentId(undefined); }}
+            task={commentTask}
+            onCountUpdate={(taskId, count) =>
+              setCommentCounts((prev) => ({ ...prev, [taskId]: count }))
+            }
+            highlightCommentId={highlightCommentId}
+            projectMembers={lockedProjectId ? projectMembers : undefined} />
+        </Suspense>
       )}
 
       {/* Cancel Recurring Dialog */}
