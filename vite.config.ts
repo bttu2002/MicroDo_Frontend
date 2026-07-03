@@ -14,5 +14,27 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Split heavy vendor deps into dedicated chunks. Browser cache can then
+        // reuse them across route navigations and across sessions, and adding
+        // a feature that pulls in one library won't inflate every other route.
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('@supabase'))      return 'vendor-supabase'
+          if (id.includes('@tiptap'))        return 'vendor-tiptap'
+          if (id.includes('@dnd-kit'))       return 'vendor-dnd'
+          if (id.includes('@fullcalendar'))  return 'vendor-fullcalendar'
+          if (id.includes('recharts') || id.includes('d3-'))  return 'vendor-charts'
+          if (id.includes('@radix-ui'))      return 'vendor-radix'
+          if (id.includes('lucide-react'))   return 'vendor-icons'
+          if (id.includes('socket.io-client')) return 'vendor-socket'
+          if (id.includes('dompurify'))      return 'vendor-dompurify'
+          if (id.includes('date-fns') || id.includes('dayjs')) return 'vendor-date'
+          return undefined
+        },
+      },
+    },
+  },
 })
-
