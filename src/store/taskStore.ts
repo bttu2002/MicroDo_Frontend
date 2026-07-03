@@ -360,13 +360,17 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   },
 
   // L-3: single set() call — avoids 3 separate re-renders
+  // Matches on either `_id` (legacy Mongo id) or `id` (Prisma UUID) so socket
+  // deltas keyed by Prisma UUID land on the same task as local writes keyed by
+  // mongoId.
   patchTask: (id, partial) => {
-    const patchInCol = (arr: Task[]) => arr.map(t => t._id === id ? { ...t, ...partial } : t);
+    const matches = (t: Task) => t._id === id || t.id === id;
+    const patchInCol = (arr: Task[]) => arr.map(t => matches(t) ? { ...t, ...partial } : t);
     const { tasks, columnTasks, projectColTasks } = get();
     const patchedProjectCols: Record<string, Task[]> = {};
     for (const [colId, colArr] of Object.entries(projectColTasks)) patchedProjectCols[colId] = patchInCol(colArr);
     set({
-      tasks: tasks.map(t => t._id === id ? { ...t, ...partial } : t),
+      tasks: tasks.map(t => matches(t) ? { ...t, ...partial } : t),
       columnTasks: {
         todo: patchInCol(columnTasks.todo),
         doing: patchInCol(columnTasks.doing),

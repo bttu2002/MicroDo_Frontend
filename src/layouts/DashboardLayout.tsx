@@ -65,11 +65,26 @@ export default function DashboardLayout() {
       toast(data.title, { description: data.message, duration: 4000 });
     };
 
-    // Debounce silentFetch — 1 CRUD often emits multiple events (task:updated,
-    // task:statusUpdated, planning:updated). Coalesce them into a single refetch.
-    const handleTaskUpdated = () => {
+    // Delta protocol: when the server includes `patch`, patch the store in
+    // place — no refetch needed. A refetch is only queued when the patch
+    // touches a field that affects task ordering (status/column/milestone/
+    // parent) or when the payload predates the delta rollout.
+    const STRUCTURAL = new Set(['status', 'columnId', 'milestoneId', 'parentTaskId']);
+    const scheduleRefetch = () => {
       if (taskUpdatedTimerRef.current) clearTimeout(taskUpdatedTimerRef.current);
       taskUpdatedTimerRef.current = setTimeout(() => { void silentFetch(); }, 300);
+    };
+    const handleTaskUpdated = (event: {
+      taskId: string;
+      patch?: Record<string, unknown>;
+      updatedFields?: string[];
+    }) => {
+      if (event.patch && event.taskId) {
+        useTaskStore.getState().patchTask(event.taskId, event.patch as Partial<import('@/types').Task>);
+        const structural = Object.keys(event.patch).some(k => STRUCTURAL.has(k));
+        if (!structural) return;
+      }
+      scheduleRefetch();
     };
 
     socket.on('notification:new', handleNotification);
