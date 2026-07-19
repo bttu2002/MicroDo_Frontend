@@ -243,9 +243,11 @@ export default function TaskDialog({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, task?._id]);
 
-  // Fetch columns for project context
+  // Fetch columns for project context. Skipped in showDirectStatus mode
+  // (planning): no column UI renders there and the auto-selected default
+  // column must never leak into a payload the user edited by status.
   useEffect(() => {
-    if (!open || !lockedProjectId) { setProjectColumns([]); return; }
+    if (!open || !lockedProjectId || showDirectStatus) { setProjectColumns([]); return; }
     boardColumnService.getColumns(lockedProjectId)
       .then(res => {
         const cols = [...res.data].sort((a, b) => a.order - b.order);
@@ -258,7 +260,7 @@ export default function TaskDialog({
       })
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, lockedProjectId]);
+  }, [open, lockedProjectId, showDirectStatus]);
 
   // Reset tab + notes-mount tracker on open/close. All internal notes state
   // lives in the lazy child, so unmounting it here (via notesEverOpened=false)
@@ -310,7 +312,11 @@ export default function TaskDialog({
     priority,
     tags: tagsInput.split(',').map(t => t.trim()).filter(Boolean),
     projectId: projectId === '__none__' ? undefined : projectId || undefined,
-    ...(lockedProjectId && { columnId: columnId ?? null }),
+    // showDirectStatus mode (planning) has no column UI — omit columnId so the
+    // backend derives the column from status. Sending it would echo the
+    // auto-selected default column and pin the task to To Do regardless of
+    // the status chosen.
+    ...(lockedProjectId && !showDirectStatus && { columnId: columnId ?? null }),
     isRecurring,
     recurrenceType: isRecurring ? (recurrenceUnit as 'DAILY' | 'WEEKLY' | 'MONTHLY') : null,
     recurrenceInterval: isRecurring && recurrenceInterval > 1 ? recurrenceInterval : null,
