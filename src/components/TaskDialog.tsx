@@ -536,7 +536,10 @@ export default function TaskDialog({
               )}
 
               {canAssign && lockedProjectId ? (
-                <div className="grid grid-cols-[4fr_1fr] gap-3 items-start">
+                // minmax(0,…) stops a long milestone name from inflating its
+                // grid track and squeezing the title input — the select value
+                // truncates inside its fixed fraction instead.
+                <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,1.2fr)] gap-3 items-start">
                   <div className="space-y-2">
                     <Label htmlFor="task-title" className="font-medium">Title</Label>
                     <Input
@@ -557,7 +560,7 @@ export default function TaskDialog({
                         onValueChange={v => setMilestoneId(v === '__none__' ? null : v)}
                         disabled={isReadOnly}
                       >
-                        <SelectTrigger className="rounded-xl text-xs h-8 px-2"><SelectValue placeholder="None" /></SelectTrigger>
+                        <SelectTrigger className="rounded-xl text-xs h-8 px-2 w-full min-w-0"><SelectValue placeholder="None" /></SelectTrigger>
                         <SelectContent position="popper" className="z-[200]">
                           <SelectItem value="__none__">None</SelectItem>
                           {projectMilestones.map(m => (
@@ -783,7 +786,11 @@ export default function TaskDialog({
                           {lockedProjectName || projects.find(p => p.id === lockedProjectId)?.name || lockedProjectId}
                         </div>
                       ) : (
-                        <Select value={projectId} onValueChange={setProjectId} disabled={isReadOnly}>
+                        // Moving an existing task between projects isn't supported by
+                        // the update API (projectId is stripped server-side), so only
+                        // offer the picker on create — editing showed a select whose
+                        // choice silently did nothing.
+                        <Select value={projectId} onValueChange={setProjectId} disabled={isReadOnly || !!task?._id}>
                           <SelectTrigger className="rounded-xl"><SelectValue placeholder="None" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="__none__">None</SelectItem>
