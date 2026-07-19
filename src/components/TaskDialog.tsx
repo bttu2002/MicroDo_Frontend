@@ -667,7 +667,7 @@ export default function TaskDialog({
                 </div>
               )}
 
-              <div className="grid grid-cols-[1fr_auto] gap-4 items-start">
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4 items-start">
                 <div className="space-y-2">
                   <Label className="font-medium">Description</Label>
                   <DescriptionEditor
@@ -678,7 +678,7 @@ export default function TaskDialog({
                     className="min-h-[160px]"
                   />
                 </div>
-                <div className="space-y-2.5 w-[160px] shrink-0">
+                <div className="space-y-2.5 w-full sm:w-[160px] shrink-0">
                   <div className="space-y-1.5">
                     {lockedProjectId && !showDirectStatus ? (
                       <>
@@ -772,7 +772,7 @@ export default function TaskDialog({
               {(() => {
                 const showProject = lockedProjectId || projects.filter(p => !p.archivedAt && !p.deletedAt).length > 0;
                 return showProject ? (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-2">
                       <Label htmlFor="task-tags" className="font-medium">Tags <span className="text-muted-foreground font-normal">(comma-separated)</span></Label>
                       <Input id="task-tags" placeholder="bug, feature, etc." value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} className="rounded-xl" disabled={isReadOnly} />
@@ -810,7 +810,7 @@ export default function TaskDialog({
                 );
               })()}
 
-              <div className="grid grid-cols-[4fr_4fr_2fr] gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-[4fr_4fr_2fr] gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="task-scheduled" className="font-medium">Scheduled for</Label>
                   <Input id="task-scheduled" type="datetime-local" step="60" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="rounded-xl" disabled={isReadOnly} />
@@ -859,7 +859,7 @@ export default function TaskDialog({
                   </div>
                   {isRecurring && (
                     <div className="pl-6">
-                      <div className="flex gap-3 items-start">
+                      <div className="flex flex-wrap gap-3 items-start">
                         <div className="space-y-1.5 w-[72px] shrink-0">
                           <Label className="text-xs">Every</Label>
                           <Input

@@ -1308,8 +1308,8 @@ export default function DepartmentManagerPage() {
             </div>
 
             {/* Role + submit */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 flex-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-[180px]">
                 <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">Role</label>
                 <select value={addMemberRole} onChange={(e) => setAddMemberRole(e.target.value)} className="flex-1 bg-muted/50 border border-border rounded-xl px-3 py-2 text-sm outline-none cursor-pointer">
                   <option value="ADMIN">ADMIN</option>

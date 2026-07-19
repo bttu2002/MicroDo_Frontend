@@ -205,7 +205,7 @@ export default function AdminUsersPage() {
           <h1 className="text-3xl font-bold text-foreground">User Management</h1>
           <p className="text-muted-foreground mt-1">Manage accounts, roles, and platform access</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={fetchUsers}
             disabled={loading}
@@ -240,7 +240,7 @@ export default function AdminUsersPage() {
             className="w-full bg-muted/50 border border-border focus:border-primary/50 focus:bg-background rounded-xl pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-all outline-none"
           />
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-muted-foreground whitespace-nowrap">Joined:</span>
           <input
             type="date"

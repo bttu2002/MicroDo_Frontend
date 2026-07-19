@@ -258,10 +258,12 @@ export default function CalendarPage() {
             --fc-event-border-color: transparent;
           }
 
-          /* Toolbar */
+          /* Toolbar — FullCalendar's toolbar doesn't wrap by itself, so on
+             phone widths the view buttons would push past the viewport */
           .fc .fc-toolbar.fc-header-toolbar {
             padding: 12px 16px; margin: 0;
             border-bottom: 1px solid var(--border);
+            flex-wrap: wrap; row-gap: 6px;
           }
           .fc .fc-toolbar-title {
             font-size: 1rem; font-weight: 700; color: var(--foreground);

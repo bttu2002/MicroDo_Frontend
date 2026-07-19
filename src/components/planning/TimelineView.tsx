@@ -262,8 +262,9 @@ export default function TimelineView({ projectId, onNavigateToPlanning }: Props)
       {/* ── Timeline grid ── */}
       <div className="rounded-2xl border border-border overflow-hidden bg-card">
         <div className="flex">
-          {/* Left panel — milestone names */}
-          <div className="w-44 shrink-0 border-r border-border">
+          {/* Left panel — milestone names (narrower on phones so the timeline
+              canvas keeps a usable scroll window) */}
+          <div className="w-28 sm:w-44 shrink-0 border-r border-border">
             {/* Header spacer */}
             <div className="h-8 border-b border-border bg-muted/30" />
             {data.milestones.map((m, i) => (

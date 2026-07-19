@@ -163,7 +163,7 @@ export default function BulkCreateDialog({ open, onClose, projectId, onCreated }
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {columns.length > 0 && (
               <div>
                 <Label className="mb-1.5 block text-sm">Column</Label>

@@ -320,11 +320,10 @@ export function DateRangePicker({ value, onChange, className, compact, compactLg
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-50 bg-card border border-border rounded-2xl shadow-2xl shadow-black/40 overflow-hidden"
-          style={{ minWidth: 530 }}>
+        <div className="absolute right-0 top-full mt-2 z-50 bg-card border border-border rounded-2xl shadow-2xl shadow-black/40 overflow-hidden w-[min(530px,calc(100vw-2rem))]">
 
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+          <div className="flex flex-wrap items-center justify-between gap-y-1 px-5 py-3 border-b border-border">
             <div className="flex items-center gap-2">
               <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Selected Period</span>
               <span className="text-sm font-semibold text-foreground">{formatRange(tempFrom, tempTo)}</span>
@@ -347,10 +346,10 @@ export function DateRangePicker({ value, onChange, className, compact, compactLg
             </div>
           </div>
 
-          {/* Body */}
-          <div className="flex">
+          {/* Body — stacks on phones: preset chips on top, calendar scrolls */}
+          <div className="flex flex-col sm:flex-row">
             {/* Presets */}
-            <div className="w-[130px] shrink-0 border-r border-border p-2 flex flex-col gap-0.5">
+            <div className="w-full sm:w-[130px] shrink-0 border-b sm:border-b-0 sm:border-r border-border p-2 flex flex-row flex-wrap sm:flex-col gap-0.5">
               {presets.map(p => (
                 <button
                   key={p.label}
@@ -367,8 +366,8 @@ export function DateRangePicker({ value, onChange, className, compact, compactLg
               ))}
             </div>
 
-            {/* Calendars */}
-            <div className="flex gap-4 p-4">
+            {/* Calendars — horizontal scroll keeps both months reachable on phones */}
+            <div className="flex gap-4 p-4 overflow-x-auto">
               <MonthGrid
                 year={left.y} month={left.m}
                 from={tempFrom} to={tempTo} hover={hover}

@@ -716,9 +716,9 @@ export default function DashboardPage() {
             </div>
           ) : stats ? (
             <>
-              <div className="grid grid-cols-3 gap-4 mb-5">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-5">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">{stats.done}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-primary">{stats.done}</p>
                   <p className="text-xs text-muted-foreground mt-1">Completed</p>
                 </div>
                 <div className="text-center">

@@ -201,9 +201,9 @@ export default function MilestoneNode({
           {milestone.title}
         </span>
 
-        {/* Progress bar */}
+        {/* Progress bar — hidden on phones so the title keeps its width */}
         {milestone.progress.total > 0 && (
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="hidden sm:flex items-center gap-1.5 shrink-0">
             <div className="w-20 h-1.5 bg-muted rounded-full overflow-hidden">
               <div
                 className="h-full bg-primary rounded-full transition-all duration-300"
@@ -232,9 +232,9 @@ export default function MilestoneNode({
           </span>
         )}
 
-        {/* Deadline */}
+        {/* Deadline — hidden on phones so the title keeps its width */}
         {milestone.deadline && (
-          <span className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
+          <span className="hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
             <Calendar size={10} />
             {new Date(milestone.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
@@ -274,7 +274,7 @@ export default function MilestoneNode({
       {isEditing && (
         <div className="mt-1 p-3 rounded-xl border border-border bg-card space-y-3 animate-in fade-in-0 slide-in-from-top-1 duration-150">
           {/* Top row: left = title + dates (50%), right = description (50%) */}
-          <div className="grid grid-cols-2 gap-3 items-stretch">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
             {/* Left column */}
             <div className="flex flex-col gap-2">
               <div className="space-y-1">

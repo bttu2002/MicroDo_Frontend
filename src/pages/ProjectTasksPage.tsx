@@ -105,8 +105,8 @@ export default function ProjectTasksPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between pt-2">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-y-2 pt-2">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={() => navigate(-1)}
             className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-colors"
@@ -124,7 +124,7 @@ export default function ProjectTasksPage() {
                 onClick={() => { setSwitcherOpen((o) => !o); setSwitcherSearch(''); }}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border hover:bg-muted transition-colors"
               >
-                <span className="font-bold text-foreground text-lg leading-tight">
+                <span className="font-bold text-foreground text-lg leading-tight truncate min-w-0 max-w-[45vw] sm:max-w-none">
                   {projectName ?? 'Project Tasks'}
                 </span>
                 <ChevronDown
@@ -180,13 +180,13 @@ export default function ProjectTasksPage() {
               )}
             </div>
           ) : (
-            <span className="font-bold text-foreground text-xl">
+            <span className="font-bold text-foreground text-xl truncate min-w-0">
               {projectName ?? 'Project Tasks'}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <TimerStartButton fetchParams={{ status: 'doing', projectId: projectId!, limit: 50 }} />
           {canDeleteTasks && (
             <Button

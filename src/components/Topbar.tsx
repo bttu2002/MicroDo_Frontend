@@ -141,7 +141,7 @@ export default function Topbar({ sidebarCollapsed }: TopbarProps) {
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50">
+            <div className="absolute right-0 mt-2 w-[min(20rem,calc(100vw-2rem))] bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50">
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                 <span className="text-sm font-semibold text-foreground">Notifications</span>

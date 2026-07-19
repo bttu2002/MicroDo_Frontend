@@ -679,8 +679,8 @@ const KanbanBoard = forwardRef<KanbanBoardRef, KanbanBoardProps>(({
         {/* Toolbar (project mode only) */}
         {lockedProjectId && (
           <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {/* Search — left, wider */}
-            <div className="relative min-w-[340px] max-w-[460px] flex-1">
+            {/* Search — full width on phones, wider fixed range on desktop */}
+            <div className="relative w-full sm:w-auto sm:min-w-[340px] sm:max-w-[460px] sm:flex-1">
               <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <input
                 type="text"

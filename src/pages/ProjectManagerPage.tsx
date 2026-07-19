@@ -623,14 +623,14 @@ export default function ProjectManagerPage() {
           </div>
         )}
 
-        {/* Tabs */}
-        <div className="flex items-center gap-1 border-b border-border">
+        {/* Tabs — scrollable strip so all 4 stay reachable on phones */}
+        <div className="flex items-center gap-1 border-b border-border overflow-x-auto scrollbar-hide">
           {(['members', 'planning', 'timeline', 'settings'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={cn(
-                'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
+                'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0',
                 tab === t
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -1199,14 +1199,14 @@ export default function ProjectManagerPage() {
 
                       {/* Emoji Mapping — header row contains compact secret control */}
                       <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
                           <div>
                             <p className="text-sm font-medium">Slack Emoji → Member Mapping</p>
                             <p className="text-xs text-muted-foreground">When n8n detects an emoji in Slack, it creates a task assigned to the mapped member.</p>
                           </div>
                           {/* Webhook Secret — compact inline */}
                           {!revealedSecret && (
-                            <div className="shrink-0 flex items-center gap-1.5">
+                            <div className="flex flex-wrap items-center gap-1.5">
                               <span className="text-[11px] text-muted-foreground whitespace-nowrap">n8n secret:</span>
                               {webhookSecretInfo?.hasSecret ? (
                                 <>
@@ -1257,7 +1257,7 @@ export default function ProjectManagerPage() {
                           </div>
                         )}
 
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
                           {emojiRows.map((row, i) => {
                             const isValidEmoji = /^[a-z0-9_+-]+$/.test(row.emoji);
                             return (
@@ -1563,8 +1563,8 @@ export default function ProjectManagerPage() {
             </div>
 
             {/* Role + submit */}
-            <div className="flex items-center gap-3 pt-1">
-              <div className="flex items-center gap-2 flex-1">
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <div className="flex items-center gap-2 flex-1 min-w-[180px]">
                 <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">Role</label>
                 <select
                   value={addRole}

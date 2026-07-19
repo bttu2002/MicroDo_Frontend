@@ -157,7 +157,7 @@ export default function AssignTaskDialog({ open, onOpenChange, member, onSuccess
           </div>
 
           {/* Description (left) + Status / Priority / Assigning-to (right) */}
-          <div className="grid grid-cols-[1fr_auto] gap-4 items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4 items-start">
             <div className="space-y-2 min-w-0">
               <Label className="font-medium">Description</Label>
               <Textarea
@@ -168,7 +168,7 @@ export default function AssignTaskDialog({ open, onOpenChange, member, onSuccess
               />
             </div>
 
-            <div className="space-y-2.5 w-[160px] shrink-0">
+            <div className="space-y-2.5 w-full sm:w-[160px] shrink-0">
               {/* Assigning to */}
               {member && (
                 <div className="space-y-1.5">
@@ -216,7 +216,7 @@ export default function AssignTaskDialog({ open, onOpenChange, member, onSuccess
           </div>
 
           {/* Tags + Project */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2 min-w-0">
               <Label className="font-medium">
                 Tags <span className="text-muted-foreground font-normal">(comma-separated)</span>
@@ -257,7 +257,7 @@ export default function AssignTaskDialog({ open, onOpenChange, member, onSuccess
           </div>
 
           {/* Scheduled + Deadline + Est. hours */}
-          <div className="grid grid-cols-[4fr_4fr_2fr] gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-[4fr_4fr_2fr] gap-3">
             <div className="space-y-2 min-w-0">
               <Label className="font-medium">Scheduled for</Label>
               <Input
@@ -331,7 +331,7 @@ export default function AssignTaskDialog({ open, onOpenChange, member, onSuccess
 
             {isRecurring && (
               <div className="pl-6">
-                <div className="flex gap-3 items-start">
+                <div className="flex flex-wrap gap-3 items-start">
                   <div className="space-y-1.5 w-[72px] shrink-0">
                     <Label className="text-xs">Every</Label>
                     <Input

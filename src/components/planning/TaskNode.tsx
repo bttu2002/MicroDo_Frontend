@@ -150,17 +150,17 @@ export default function TaskNode({
               </span>
             )}
 
-            {/* Deadline */}
+            {/* Deadline — hidden on phones so the task title keeps its width */}
             {task.deadline && (
-              <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+              <span className="hidden sm:flex items-center gap-0.5 text-[10px] text-muted-foreground">
                 <Calendar size={9} />
                 {new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
             )}
 
-            {/* Assignee */}
+            {/* Assignee — hidden on phones so the task title keeps its width */}
             {assignee && (
-              <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+              <span className="hidden sm:flex items-center gap-0.5 text-[10px] text-muted-foreground">
                 {assignee.profile?.avatar
                   ? <img src={assignee.profile.avatar} alt="" className="w-3.5 h-3.5 rounded-full object-cover" />
                   : <User size={10} />}

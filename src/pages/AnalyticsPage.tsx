@@ -306,9 +306,9 @@ export default function AnalyticsPage() {
               {!timeData || timeData.summary.sessionCount === 0 ? (
                 <p className="text-sm text-muted-foreground">No time tracking data yet.</p>
               ) : (
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">{formatSeconds(timeData.summary.totalDurationSeconds)}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-primary">{formatSeconds(timeData.summary.totalDurationSeconds)}</p>
                     <p className="text-xs text-muted-foreground mt-1">Total time</p>
                   </div>
                   <div className="text-center">

@@ -413,7 +413,7 @@ export default function AdminDepartmentsPage() {
             className="w-full bg-muted/50 border border-border focus:border-primary/50 focus:bg-background rounded-xl pl-9 pr-3 py-2 text-sm outline-none transition-all"
           />
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-muted-foreground whitespace-nowrap">Created:</span>
           <input
             type="date"
