@@ -63,6 +63,9 @@ export default function PlanningTreeView({ projectId, canManage, projectMembers 
   const [creatingMilestone, setCreatingMilestone] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'OVERDUE' | 'COMPLETED' | 'CANCELLED'>('ALL');
+  // Assignee filter for the "No Milestone" section — lets a manager see at a
+  // glance which not-yet-planned tasks also have nobody responsible for them
+  const [noMilestoneFilter, setNoMilestoneFilter] = useState<'all' | 'assigned' | 'unassigned'>('all');
 
   useEffect(() => {
     fetchTree(projectId);
@@ -367,6 +370,34 @@ export default function PlanningTreeView({ projectId, canManage, projectMembers 
     setEditingTask({ _id: '__new__', title: '', description: '', status: 'todo', priority: 'medium', tags: [] } as unknown as Task);
   }, []);
 
+  // Subtask toggle for the Unassigned Tasks section — mirrors
+  // MilestoneNode.handleToggleSubtask but patches tree.unassigned (the old
+  // `async () => {}` placeholder made these checkboxes silently do nothing).
+  const handleToggleUnassignedSubtask = useCallback(async (task: PlanningTask, subtask: PlanningSubtask) => {
+    const newStatus: 'todo' | 'done' = subtask.status === 'done' ? 'todo' : 'done';
+    const currentTree = usePlanningStore.getState().tree;
+    if (currentTree) {
+      const newUnassigned = currentTree.unassigned.data.map(t => {
+        if (t.id !== task.id) return t;
+        const newSubs = t.subtasks.map(s =>
+          s.id === subtask.id ? { ...s, status: newStatus as 'todo' | 'doing' | 'done' } : s
+        );
+        const done = newSubs.filter(s => s.status === 'done').length;
+        return { ...t, subtasks: newSubs, subtaskProgress: { done, total: newSubs.length } };
+      });
+      usePlanningStore.setState({
+        tree: { ...currentTree, unassigned: { ...currentTree.unassigned, data: newUnassigned } },
+      });
+    }
+    try {
+      await subtaskService.update(task.id, subtask.id, { status: newStatus });
+      void refresh();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to update subtask'));
+      await refresh();
+    }
+  }, [refresh]);
+
   const handleDeleteTask = useCallback(async (taskId: string) => {
     // Optimistic: remove task from tree immediately
     const currentTree = usePlanningStore.getState().tree;
@@ -616,31 +647,62 @@ export default function PlanningTreeView({ projectId, canManage, projectMembers 
           </div>
         </SortableContext>
 
-        {/* Unassigned tasks section */}
-        {tree.unassigned.data.length > 0 && (
-          <div className="mt-4">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-border bg-muted/20">
-              <span className="text-xs font-semibold text-muted-foreground">Unassigned Tasks</span>
-              <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                {tree.unassigned.total}
-              </span>
+        {/* No-milestone tasks section — every parent project task not yet
+            planned into a milestone, regardless of assignee. Filter chips
+            split the list by assignee so nothing slips through. */}
+        {tree.unassigned.data.length > 0 && (() => {
+          const assignedTasks   = tree.unassigned.data.filter(t => t.assignedTo);
+          const unassignedTasks = tree.unassigned.data.filter(t => !t.assignedTo);
+          const visibleTasks =
+            noMilestoneFilter === 'assigned'   ? assignedTasks :
+            noMilestoneFilter === 'unassigned' ? unassignedTasks :
+            tree.unassigned.data;
+          const chips = [
+            { key: 'all' as const,        label: 'All',        count: tree.unassigned.total },
+            { key: 'assigned' as const,   label: 'Assigned',   count: assignedTasks.length },
+            { key: 'unassigned' as const, label: 'Unassigned', count: unassignedTasks.length },
+          ];
+          return (
+            <div className="mt-4">
+              <div className="flex flex-wrap items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-border bg-muted/20">
+                <span className="text-xs font-semibold text-muted-foreground">No Milestone</span>
+                <div className="flex items-center gap-1 ml-1">
+                  {chips.map(chip => (
+                    <button
+                      key={chip.key}
+                      onClick={() => setNoMilestoneFilter(chip.key)}
+                      className={`text-[10px] font-medium px-1.5 py-0.5 rounded transition-colors ${
+                        noMilestoneFilter === chip.key
+                          ? 'bg-primary/15 text-primary border border-primary/30'
+                          : 'bg-muted text-muted-foreground border border-transparent hover:text-foreground'
+                      }`}
+                    >
+                      {chip.label} {chip.count}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-1 ml-4 pl-3 border-l-2 border-dashed border-border/30 space-y-0.5">
+                {visibleTasks.length === 0 ? (
+                  <div className="py-2 text-[11px] text-muted-foreground italic">
+                    No {noMilestoneFilter} tasks without a milestone.
+                  </div>
+                ) : visibleTasks.map(task => (
+                  <TaskNode
+                    key={task.id}
+                    task={task}
+                    milestoneId=""
+                    canEdit={canManage}
+                    projectMembers={projectMembers}
+                    onOpenTask={handleOpenTask}
+                    onToggleSubtask={handleToggleUnassignedSubtask}
+                    onDeleteTask={canManage ? handleDeleteTask : undefined}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="mt-1 ml-4 pl-3 border-l-2 border-dashed border-border/30 space-y-0.5">
-              {tree.unassigned.data.map(task => (
-                <TaskNode
-                  key={task.id}
-                  task={task}
-                  milestoneId=""
-                  canEdit={canManage}
-                  projectMembers={projectMembers}
-                  onOpenTask={handleOpenTask}
-                  onToggleSubtask={async () => {}}
-                  onDeleteTask={canManage ? handleDeleteTask : undefined}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+          );
+        })()}
 
         {filteredMilestones.length === 0 && (
           <div className="text-center py-12 text-muted-foreground/50 text-sm">

@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
 
 interface AssignTaskDialogProps {
   open: boolean;
@@ -247,6 +247,12 @@ export default function AssignTaskDialog({ open, onOpenChange, member, onSuccess
                   )}
                 </SelectContent>
               </Select>
+              {projectId === NONE && (
+                <p className="text-[11px] leading-snug text-amber-600 dark:text-amber-500 flex items-start gap-1">
+                  <AlertTriangle size={11} className="shrink-0 mt-0.5" />
+                  Without a project, this task is personal to the assignee and won't appear on any project's Planning board.
+                </p>
+              )}
             </div>
           </div>
 

@@ -113,6 +113,7 @@ export default function MilestoneNode({
                                         'NOT_STARTED';
   const statusCfg = statusConfig[statusKey];
   const taskIds = milestone.tasks.map(t => t.id);
+  const unassignedCount = milestone.tasks.filter(t => !t.assignedTo).length;
 
   const handleToggleSubtask = async (task: PlanningTask, subtask: PlanningSubtask) => {
     const newStatus = subtask.status === 'done' ? 'todo' : 'done';
@@ -219,6 +220,17 @@ export default function MilestoneNode({
         <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">
           {milestone.progress.done}/{milestone.progress.total} tasks
         </span>
+
+        {/* Unassigned-task warning — surfaces tasks nobody owns yet */}
+        {unassignedCount > 0 && statusKey !== 'COMPLETED' && statusKey !== 'CANCELLED' && (
+          <span
+            className="flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-500 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded shrink-0"
+            title={`${unassignedCount} task${unassignedCount > 1 ? 's' : ''} in this milestone ${unassignedCount > 1 ? 'have' : 'has'} no assignee`}
+          >
+            <AlertCircle size={10} />
+            {unassignedCount} unassigned
+          </span>
+        )}
 
         {/* Deadline */}
         {milestone.deadline && (
