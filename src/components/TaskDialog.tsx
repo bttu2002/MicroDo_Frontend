@@ -28,6 +28,7 @@ import { subtaskService } from '@/services/subtaskService';
 import { taskService } from '@/services/taskService';
 import DescriptionEditor from '@/components/DescriptionEditor';
 import { cn } from '@/lib/utils';
+import { statusForColumn } from '@/lib/columnStatus';
 import { taskNoteService } from '@/services/taskNoteService';
 import { useTaskPresence } from '@/hooks/useTaskPresence';
 import PresenceAvatars from '@/components/PresenceAvatars';
@@ -684,12 +685,8 @@ export default function TaskDialog({
                             value={columnId ?? ''}
                             onValueChange={(newColId) => {
                               setColumnId(newColId);
-                              const sorted = [...projectColumns].sort((a, b) => a.order - b.order);
-                              const idx = sorted.findIndex(c => c.id === newColId);
-                              if (idx !== -1) {
-                                const s = idx === sorted.length - 1 ? 'done' : idx === 0 ? 'todo' : 'doing';
-                                setStatus(s as 'todo' | 'doing' | 'done');
-                              }
+                              const s = statusForColumn(projectColumns, newColId);
+                              if (s) setStatus(s);
                             }}
                             disabled={isReadOnly}>
                             <SelectTrigger className="rounded-xl text-xs h-8 px-2"><SelectValue /></SelectTrigger>

@@ -33,6 +33,7 @@ import { Plus, Loader2, MoreHorizontal, Palette, Trash2, GripVertical, Search, C
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/services/api';
 import { cn } from '@/lib/utils';
+import { statusForColumn } from '@/lib/columnStatus';
 import DateRangePicker from '@/components/DateRangePicker';
 import type { DateRange } from '@/components/DateRangePicker';
 
@@ -459,14 +460,7 @@ const KanbanBoard = forwardRef<KanbanBoardRef, KanbanBoardProps>(({
       const newColumnId = overId.replace('task-drop-', '');
       if (task.columnId === newColumnId) return;
 
-      const sorted = [...boardColumns].sort((a, b) => a.order - b.order);
-      const targetIdx = sorted.findIndex(c => c.id === newColumnId);
-      const colName = (sorted[targetIdx]?.name ?? '').toLowerCase().trim();
-      const isDoneByName = /\bdone\b|\bcomplete[d]?\b|\bfinish(ed)?\b/.test(colName);
-      const isTodoByName = /\bto[\s-]?do\b|\btodo\b|\bbacklog\b|\bnew\b/.test(colName);
-      const inferredStatus: 'todo' | 'doing' | 'done' =
-        isDoneByName || targetIdx === sorted.length - 1 ? 'done' :
-        isTodoByName || targetIdx === 0 ? 'todo' : 'doing';
+      const inferredStatus = statusForColumn(boardColumns, newColumnId) ?? 'doing';
 
       try { await moveTaskToColumn(taskId, newColumnId, inferredStatus); }
       catch (err) { toast.error(getApiErrorMessage(err, 'Failed to move task')); }
@@ -482,9 +476,15 @@ const KanbanBoard = forwardRef<KanbanBoardRef, KanbanBoardProps>(({
   const handleCreate = (opts?: { status?: 'todo' | 'doing' | 'done'; columnId?: string }) => {
     setEditingTask(null);
     if (opts?.status || opts?.columnId) {
+      // "+ add in column" must seed a status matching that column — otherwise
+      // a task added to the Done column is created with status 'todo' and
+      // every status-based view (planning, list, analytics) disagrees with
+      // the board.
+      const seededStatus = opts.status
+        ?? (opts.columnId ? statusForColumn(boardColumns, opts.columnId) ?? 'todo' : 'todo');
       setEditingTask({
         _id: '', title: '', description: '',
-        status: opts.status ?? 'todo',
+        status: seededStatus,
         columnId: opts.columnId ?? null,
         userId: '', createdAt: '', updatedAt: '',
       } as Task);
